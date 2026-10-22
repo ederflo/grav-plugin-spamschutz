@@ -1,0 +1,38 @@
+name: Spamschutz
+version: 1.0.0
+description: 'Bewertet Formular-Einsendungen nach Punkten und lehnt Werbemüll ab.'
+icon: shield
+author:
+  name: 'FF Afritz am See'
+homepage: ''
+keywords: spam, form, schutz
+bugs: ''
+license: MIT
+
+form:
+  validation: loose
+  fields:
+    enabled:
+      type: toggle
+      label: Plugin aktiviert
+      highlight: 1
+      default: 1
+      options: { 1: Ja, 0: Nein }
+      validate: { type: bool }
+    schwelle:
+      type: number
+      label: 'Punkte-Schwelle'
+      help: 'Ab so vielen Punkten wird abgelehnt. Höher = nachsichtiger.'
+      default: 4
+    mindestzeit:
+      type: number
+      label: 'Mindestdauer in Sekunden'
+      default: 4
+    max_pro_stunde:
+      type: number
+      label: 'Einsendungen je Adresse und Stunde'
+      default: 5
+    melde_text:
+      type: textarea
+      label: 'Text bei Ablehnung'
+      rows: 3

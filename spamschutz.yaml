@@ -1,0 +1,47 @@
+enabled: true
+
+# Ab wie vielen Punkten wird abgelehnt. Hoeher = nachsichtiger.
+schwelle: 4
+
+# Sekunden, die das Ausfuellen mindestens dauern muss.
+mindestzeit: 4
+
+# Einsendungen je Adresse und Stunde, danach wird abgelehnt.
+max_pro_stunde: 8
+
+# Text, den ein Mensch sieht, wenn es ihn faelschlich erwischt.
+melde_text: 'Deine Nachricht wurde vom Spamschutz abgelehnt. Das tut uns leid, falls du kein Bot bist: schick sie uns bitte direkt per E-Mail, die Adresse steht im Impressum.'
+
+# Je Treffer 2 Punkte (hoechstens 4). Nur Kleinbuchstaben, wird als Teilwort gesucht.
+begriffe:
+  - 'quería saber tu precio'
+  - 'saber tu precio'
+  - 'your price'
+  - 'know your price'
+  - 'price list'
+  - 'backlink'
+  - 'guest post'
+  - 'seo service'
+  - 'seo-service'
+  - 'search engine optimization'
+  - 'web design service'
+  - 'digital marketing'
+  - 'increase your sales'
+  - 'crypto'
+  - 'bitcoin'
+  - 'binary option'
+  - 'casino'
+  - 'viagra'
+  - 'cialis'
+  - 'payday loan'
+  - 'cheap loan'
+  - 'sexy'
+  - 'dating site'
+  - 'porn'
+  - 'nude'
+  - 'buy now'
+  - 'click here to'
+  - 'unsubscribe from'
+  - 'telegram: @'
+  - 'whatsapp me'
+  - 'best regards, mr'
