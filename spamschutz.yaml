@@ -1,7 +1,8 @@
 enabled: true
 
 # Ab wie vielen Punkten wird abgelehnt. Hoeher = nachsichtiger.
-schwelle: 4
+# Bei 6 braucht es drei harmlose Auffaelligkeiten; zu schnell oder zu oft abgeschickt reicht allein.
+schwelle: 6
 
 # Sekunden, die das Ausfuellen mindestens dauern muss.
 mindestzeit: 4

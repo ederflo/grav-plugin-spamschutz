@@ -117,6 +117,10 @@ class SpamschutzPlugin extends Plugin
             }
         }
 
+        // Tempo und Masse sind die sichersten Bot-Zeichen: Sie bringen so viele Punkte
+        // wie die Schwelle und lehnen damit allein ab. Alles andere braucht mehrere Treffer.
+        $schwelle = (int)($cfg['schwelle'] ?? 6);
+
         // --- Formular zu schnell abgeschickt --------------------------------
         $session = $this->grav['session'] ?? null;
         $seit    = $session ? (int)($session->spamschutz_zeit ?? 0) : 0;
@@ -124,7 +128,7 @@ class SpamschutzPlugin extends Plugin
         if ($seit > 0) {
             $dauer = time() - $seit;
             if ($dauer < $mindest) {
-                $punkte += 4; $gruende[] = "in {$dauer}s abgeschickt";
+                $punkte += $schwelle; $gruende[] = "in {$dauer}s abgeschickt";
             }
         } else {
             $punkte += 2; $gruende[] = 'ohne Sitzung abgeschickt';
@@ -133,10 +137,9 @@ class SpamschutzPlugin extends Plugin
         // --- zu viele Einsendungen von derselben Adresse ---------------------
         $ip = $this->ipAdresse();
         if ($this->zuOft($ip, (int)($cfg['max_pro_stunde'] ?? 5))) {
-            $punkte += 5; $gruende[] = 'zu viele Einsendungen';
+            $punkte += $schwelle; $gruende[] = 'zu viele Einsendungen';
         }
 
-        $schwelle = (int)($cfg['schwelle'] ?? 4);
         if ($punkte >= $schwelle) {
             $this->protokollieren('ABGELEHNT', $punkte, $gruende, $form->name(), $ip, $langtext);
             throw new ValidationException($cfg['melde_text'] ?? 'Deine Nachricht wurde vom Spamschutz abgelehnt. Bitte schick sie uns direkt per E-Mail.');
