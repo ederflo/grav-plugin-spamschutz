@@ -1,14 +1,13 @@
 <?php
 /**
- * Spamschutz für die Kontaktformulare.
+ * Spamschutz für Grav-Formulare, ohne Captcha.
  *
  * Der Honigtopf des Form-Plugins reicht nicht mehr: die Bots rendern die Seite
  * richtig und lassen das versteckte Feld leer. Dieses Plugin bewertet darum den
  * Inhalt der Einsendung nach Punkten und lehnt erst ab einer Schwelle ab, damit
  * eine echte Nachricht nicht an einer einzelnen Auffälligkeit scheitert.
  *
- * Es wird an allen vier Seiten gleich eingesetzt. Quelle:
- *   /usr/local/share/grav-spamschutz  ->  verteilt mit grav-spamschutz-deploy.sh
+ * https://github.com/ederflo/grav-plugin-spamschutz (MIT)
  */
 namespace Grav\Plugin;
 
@@ -109,10 +108,11 @@ class SpamschutzPlugin extends Plugin
                 $langtext = $wert;
             }
         }
-        if (mb_strlen($langtext) > 25) {
-            $deutsch = ['der','die','das','und','ist','sind','wir','ich','mit','für','fuer','nicht','ein','eine','einen','bei','auf','von','zu','habe','hallo','servus','guten','gerne','bitte','danke','würde','wuerde','möchte','moechte','können','koennen','anfrage','feuerwehr','verein','sie','ihr','uns','mich','mir','am','im','an','dass','wie','was','oder'];
+        // Alltagswörter der Seitensprache kommen aus der Konfiguration (Standard: Deutsch)
+        $alltag = array_map(static fn($w) => mb_strtolower(trim((string)$w)), (array)($cfg['alltagswoerter'] ?? []));
+        if (($cfg['sprachpruefung'] ?? true) && $alltag && mb_strlen($langtext) > 25) {
             $worte = preg_split('/[^\p{L}äöüß]+/u', mb_strtolower($langtext), -1, PREG_SPLIT_NO_EMPTY) ?: [];
-            if (!array_intersect($worte, $deutsch)) {
+            if (!array_intersect($worte, $alltag)) {
                 $punkte += 2; $gruende[] = 'kein deutsches Wort';
             }
         }
@@ -135,8 +135,8 @@ class SpamschutzPlugin extends Plugin
         }
 
         // --- zu viele Einsendungen von derselben Adresse ---------------------
-        $ip = $this->ipAdresse();
-        if ($this->zuOft($ip, (int)($cfg['max_pro_stunde'] ?? 5))) {
+        $ip = $this->ipAdresse(!empty($cfg['proxy_vertrauen']));
+        if ($this->zuOft($ip, (int)($cfg['max_pro_stunde'] ?? 8))) {
             $punkte += $schwelle; $gruende[] = 'zu viele Einsendungen';
         }
 
@@ -149,9 +149,14 @@ class SpamschutzPlugin extends Plugin
         }
     }
 
-    private function ipAdresse(): string
+    /**
+     * Adresse der Einsendung. X-Forwarded-For kann jeder Client selbst setzen; es zählt
+     * darum nur, wenn ein eigener Proxy davor sitzt (proxy_vertrauen: true).
+     */
+    private function ipAdresse(bool $proxy): string
     {
-        foreach (['HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR'] as $k) {
+        $quellen = $proxy ? ['HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR'] : ['REMOTE_ADDR'];
+        foreach ($quellen as $k) {
             if (!empty($_SERVER[$k])) {
                 $ip = trim(explode(',', (string)$_SERVER[$k])[0]);
                 if (filter_var($ip, FILTER_VALIDATE_IP)) {
@@ -204,6 +209,27 @@ class SpamschutzPlugin extends Plugin
             'ip'       => $ip,
             'text'     => mb_substr($text, 0, 400),
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        @file_put_contents($this->datenOrdner() . '/protokoll.log', $zeile . "\n", FILE_APPEND | LOCK_EX);
+        $datei = $this->datenOrdner() . '/protokoll.log';
+        @file_put_contents($datei, $zeile . "\n", FILE_APPEND | LOCK_EX);
+
+        // Das Protokoll enthält IP-Adressen und Nachrichtentext: alte Einträge verfallen
+        $tage = (int)$this->config->get('plugins.spamschutz.protokoll_tage', 30);
+        if ($tage > 0 && random_int(1, 20) === 1) {
+            $this->protokollKuerzen($datei, $tage);
+        }
+    }
+
+    /** Behält nur Einträge der letzten $tage Tage. */
+    private function protokollKuerzen(string $datei, int $tage): void
+    {
+        $grenze = time() - $tage * 86400;
+        $zeilen = @file($datei, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
+        $behalten = array_filter($zeilen, static function (string $z) use ($grenze): bool {
+            $e = json_decode($z, true);
+            return is_array($e) && strtotime((string)($e['zeit'] ?? '')) >= $grenze;
+        });
+        if (count($behalten) < count($zeilen)) {
+            @file_put_contents($datei, $behalten ? implode("\n", $behalten) . "\n" : '', LOCK_EX);
+        }
     }
 }

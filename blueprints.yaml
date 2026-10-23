@@ -1,13 +1,22 @@
 name: Spamschutz
-version: 1.0.0
-description: 'Bewertet Formular-Einsendungen nach Punkten und lehnt Werbemüll ab.'
+slug: spamschutz
+type: plugin
+version: 1.1.0
+description: 'Captcha-free spam protection for Grav forms. Scores every submission (speed, links, foreign scripts, spam phrases, language) and only rejects above a threshold, so a single oddity never blocks a real message.'
 icon: shield
 author:
-  name: 'FF Afritz am See'
-homepage: ''
-keywords: spam, form, schutz
-bugs: ''
+  name: Florian Eder
+  email: kontakt@florianeder.at
+  url: https://florianeder.at
+homepage: https://github.com/ederflo/grav-plugin-spamschutz
+docs: https://github.com/ederflo/grav-plugin-spamschutz/blob/main/README.md
+bugs: https://github.com/ederflo/grav-plugin-spamschutz/issues
+keywords: spam, antispam, form, captcha, honeypot, bot, contact
 license: MIT
+
+dependencies:
+  - { name: grav, version: '>=1.7.0' }
+  - { name: form, version: '>=7.0.0' }
 
 form:
   validation: loose
@@ -22,17 +31,47 @@ form:
     schwelle:
       type: number
       label: 'Punkte-Schwelle'
-      help: 'Ab so vielen Punkten wird abgelehnt. Höher = nachsichtiger.'
-      default: 4
+      help: 'Ab so vielen Punkten wird abgelehnt. Höher = nachsichtiger. Zu schnelles Absenden und zu viele Einsendungen bringen genau so viele Punkte und lehnen allein ab.'
+      default: 6
+      validate: { min: 1, max: 30 }
     mindestzeit:
       type: number
       label: 'Mindestdauer in Sekunden'
+      help: 'Wer schneller absendet, gilt als Bot.'
       default: 4
     max_pro_stunde:
       type: number
       label: 'Einsendungen je Adresse und Stunde'
-      default: 5
+      default: 8
     melde_text:
       type: textarea
       label: 'Text bei Ablehnung'
       rows: 3
+    begriffe:
+      type: array
+      label: 'Werbebegriffe'
+      help: 'Je Treffer 2 Punkte, höchstens 4. Kleinbuchstaben, wird als Teilwort gesucht.'
+      value_only: true
+    sprachpruefung:
+      type: toggle
+      label: 'Sprachprüfung'
+      help: '2 Punkte, wenn der längste Text keines der Alltagswörter enthält.'
+      default: 1
+      options: { 1: Ja, 0: Nein }
+      validate: { type: bool }
+    alltagswoerter:
+      type: array
+      label: 'Alltagswörter der Seitensprache'
+      value_only: true
+    proxy_vertrauen:
+      type: toggle
+      label: 'Adresse aus X-Forwarded-For'
+      help: 'Nur einschalten, wenn ein eigener Reverse-Proxy davor sitzt. Sonst kann jeder Client den Header fälschen.'
+      default: 0
+      options: { 1: Ja, 0: Nein }
+      validate: { type: bool }
+    protokoll_tage:
+      type: number
+      label: 'Protokoll aufheben (Tage)'
+      help: 'Das Protokoll enthält IP-Adressen und Nachrichtentext. 0 = für immer.'
+      default: 30

@@ -10,6 +10,18 @@ mindestzeit: 4
 # Einsendungen je Adresse und Stunde, danach wird abgelehnt.
 max_pro_stunde: 8
 
+# Nur einschalten, wenn ein eigener Reverse-Proxy davor sitzt: dann zaehlt X-Forwarded-For.
+# Ohne Proxy kann jeder Client den Header faelschen und die Sperre oben umgehen.
+proxy_vertrauen: false
+
+# Wie viele Tage das Protokoll (user/data/spamschutz/protokoll.log) aufhebt. 0 = fuer immer.
+protokoll_tage: 30
+
+# Sprachpruefung: 2 Punkte, wenn der laengste Text keines dieser Alltagswoerter enthaelt.
+# Fuer Seiten in einer anderen Sprache die Liste ersetzen oder sprachpruefung: false setzen.
+sprachpruefung: true
+alltagswoerter: [der, die, das, und, ist, sind, wir, ich, mit, für, fuer, nicht, ein, eine, einen, bei, auf, von, zu, habe, hallo, servus, guten, gerne, bitte, danke, würde, wuerde, möchte, moechte, können, koennen, anfrage, feuerwehr, verein, sie, ihr, uns, mich, mir, am, im, an, dass, wie, was, oder]
+
 # Text, den ein Mensch sieht, wenn es ihn faelschlich erwischt.
 melde_text: 'Deine Nachricht wurde vom Spamschutz abgelehnt. Das tut uns leid, falls du kein Bot bist: schick sie uns bitte direkt per E-Mail, die Adresse steht im Impressum.'
 
