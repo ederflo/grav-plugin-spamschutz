@@ -70,12 +70,26 @@ the phrase list. Entries older than `protokoll_tage` are removed automatically.
 Because the log contains IP addresses and message text, mention it in your privacy policy
 (legitimate interest in protecting the form, Art. 6(1)(f) GDPR).
 
+## Tests
+
+Plain PHP scripts, no Composer or PHPUnit needed. Grav, the Form plugin and the session are
+replaced by small stubs in `tests/stubs.php`; all names and messages in the tests are made up.
+
+```bash
+php tests/alle.php      # everything, exit code 1 if a check fails
+php tests/punkte.php    # scoring and threshold: real messages pass, typical spam does not
+php tests/regeln.php    # minimum time, rate limit, proxy, everyday words, phrases, log expiry
+```
+
+Checks marked `bekannt` describe a known bug and are expected to fail until it is fixed.
+
 ## Deutsch in Kürze
 
 Bewertet jede Formular-Einsendung nach Punkten und lehnt erst ab 6 Punkten ab. Zu schnelles
 Absenden und zu viele Einsendungen reichen allein, alles andere braucht mehrere Treffer. Kein
 Captcha, keine fremden Dienste. Installation: nach `user/plugins/spamschutz` entpacken, Cache
 leeren. Einstellungen in `user/config/plugins/spamschutz.yaml` oder im Admin.
+Tests: `php tests/alle.php` (ohne Composer, Grav wird nachgebildet).
 
 ## License
 
